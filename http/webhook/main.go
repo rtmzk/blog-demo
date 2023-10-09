@@ -15,9 +15,11 @@
 package main
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -62,5 +64,12 @@ func main() {
 		_ = json.NewEncoder(w).Encode(resp(true, ""))
 	})
 
-	http.ListenAndServeTLS(":9090", "certs/server.crt", "certs/server.key", nil)
+	server := http.Server{
+		Addr: "localhost:9090",
+		TLSConfig: &tls.Config{
+			MinVersion: tls.VersionTLS13,
+		},
+	}
+
+	log.Fatal(server.ListenAndServeTLS("certs/server.crt", "certs/server.key"))
 }
